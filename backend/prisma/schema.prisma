@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── MODELS ───────────────────────────────────────────────
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  passwordHash    String
+  role            String
+  profile         Profile?
+  applications    Application[]
+  assignedDocs    DocumentReview[]
+  workflowActions WorkflowAction[]
+  refreshToken    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("users")
+}
+
+model Profile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName   String
+  lastName    String
+  phone       String?
+  dateOfBirth DateTime?
+  address     String?
+  institution String?
+  department  String?
+  yearOfStudy Int?
+  cgpa        Float?
+  avatarUrl   String?
+
+  @@map("profiles")
+}
+
+model Scholarship {
+  id                  String        @id @default(cuid())
+  name                String
+  description         String
+  totalBudget         Float
+  perAwardAmount      Float
+  maxAwardees         Int
+  eligibilityCriteria String
+  requiredDocuments   String
+  applicationDeadline DateTime
+  academicYear        String
+  isActive            Boolean       @default(true)
+  applications        Application[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@map("scholarships")
+}
+
+model Application {
+  id                String            @id @default(cuid())
+  studentId         String
+  student           User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  scholarshipId     String
+  scholarship       Scholarship       @relation(fields: [scholarshipId], references: [id], onDelete: Cascade)
+  status            String            @default("DRAFT")
+  personalStatement String?
+  familyIncome      Float?
+  academicDetails   String?
+  submittedAt       DateTime?
+  documents         Document[]
+  workflowStages    WorkflowAction[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([studentId, scholarshipId])
+  @@map("applications")
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  applicationId String
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentType  String
+  fileName      String
+  s3Key         String
+  s3Url         String
+  status        String         @default("PENDING")
+  reviews       DocumentReview[]
+  uploadedAt    DateTime       @default(now())
+
+  @@map("documents")
+}
+
+model DocumentReview {
+  id         String         @id @default(cuid())
+  documentId String
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User           @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  status     String
+  remarks    String?
+  reviewedAt DateTime       @default(now())
+
+  @@map("document_reviews")
+}
+
+model WorkflowAction {
+  id            String        @id @default(cuid())
+  applicationId String
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  actorId       String
+  actor         User          @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  stage         String
+  action        String
+  remarks       String?
+  createdAt     DateTime      @default(now())
+
+  @@map("workflow_actions")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
