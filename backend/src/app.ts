@@ -25,7 +25,7 @@ const PORT = parseInt(process.env.PORT || '5000', 10);
 // ─── GLOBAL MIDDLEWARE ──────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: true, // Allow any origin dynamically (fixes login issues)
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -36,6 +36,10 @@ app.use(generalLimiter);
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 // ─── HEALTH CHECK ───────────────────────────────────────────
+app.get('/', (_req, res) => {
+  res.send('<h1>Scholarship Management API is running! 🚀</h1><p>Go to the frontend portal to log in.</p>');
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
