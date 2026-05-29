@@ -220,9 +220,9 @@ class ApplicationService {
     }
 
     // Validate required documents
-    const requiredDocs = application.scholarship.requiredDocuments;
+    const requiredDocs = (application.scholarship.requiredDocuments as string[]) || [];
     const uploadedDocTypes = application.documents.map((d) => d.documentType);
-    const missingDocs = requiredDocs.filter((doc) => !uploadedDocTypes.includes(doc));
+    const missingDocs = requiredDocs.filter((doc: string) => !uploadedDocTypes.includes(doc));
 
     if (missingDocs.length > 0) {
       throw new AppError(

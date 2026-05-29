@@ -24,14 +24,14 @@ let reportQueue: Queue | null = null;
 
 export function getEmailQueue(): Queue {
   if (!emailQueue) {
-    emailQueue = new Queue('email', { connection: getRedisConnection() });
+    emailQueue = new Queue('email', { connection: getRedisConnection() as any });
   }
   return emailQueue;
 }
 
 export function getReportQueue(): Queue {
   if (!reportQueue) {
-    reportQueue = new Queue('report', { connection: getRedisConnection() });
+    reportQueue = new Queue('report', { connection: getRedisConnection() as any });
   }
   return reportQueue;
 }

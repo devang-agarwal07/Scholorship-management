@@ -100,7 +100,7 @@ export function startReportWorker(): Worker | null {
         console.log(`✅ Report generated: ${job.data.type} (${pdfBuffer.length} bytes)`);
         return { size: pdfBuffer.length };
       },
-      { connection, concurrency: 2 }
+      { connection: connection as any, concurrency: 2 }
     );
 
     worker.on('failed', (job, err) => {

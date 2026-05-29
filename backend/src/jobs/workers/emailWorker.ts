@@ -100,7 +100,7 @@ export function startEmailWorker(): Worker | null {
 
         console.log(`✉️ Email sent to ${to}: ${subject}`);
       },
-      { connection, concurrency: 5 }
+      { connection: connection as any, concurrency: 5 }
     );
 
     worker.on('failed', (job, err) => {
