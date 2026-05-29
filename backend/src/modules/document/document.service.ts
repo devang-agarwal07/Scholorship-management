@@ -1,6 +1,6 @@
 import prisma from '../../config/database';
 import { AppError } from '../../middleware/errorHandler';
-import { DocumentStatus } from '@prisma/client';
+import { DocumentStatus } from '../../constants/enums';
 import { uploadToS3, getSignedDownloadUrl, generateS3Key } from '../../utils/s3Upload';
 import { notificationService } from '../notification/notification.service';
 

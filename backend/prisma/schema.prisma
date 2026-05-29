@@ -3,14 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 // ─── MODELS ───────────────────────────────────────────────
 
 model User {
-  id              String           @id @default(cuid())
+  id              String           @id @default(cuid()) @map("_id")
   email           String           @unique
   passwordHash    String
   role            String
@@ -26,7 +26,7 @@ model User {
 }
 
 model Profile {
-  id          String    @id @default(cuid())
+  id          String    @id @default(cuid()) @map("_id")
   userId      String    @unique
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   firstName   String
@@ -44,14 +44,14 @@ model Profile {
 }
 
 model Scholarship {
-  id                  String        @id @default(cuid())
+  id                  String        @id @default(cuid()) @map("_id")
   name                String
   description         String
   totalBudget         Float
   perAwardAmount      Float
   maxAwardees         Int
-  eligibilityCriteria String
-  requiredDocuments   String
+  eligibilityCriteria Json
+  requiredDocuments   Json
   applicationDeadline DateTime
   academicYear        String
   isActive            Boolean       @default(true)
@@ -63,7 +63,7 @@ model Scholarship {
 }
 
 model Application {
-  id                String            @id @default(cuid())
+  id                String            @id @default(cuid()) @map("_id")
   studentId         String
   student           User              @relation(fields: [studentId], references: [id], onDelete: Cascade)
   scholarshipId     String
@@ -71,7 +71,7 @@ model Application {
   status            String            @default("DRAFT")
   personalStatement String?
   familyIncome      Float?
-  academicDetails   String?
+  academicDetails   Json?
   submittedAt       DateTime?
   documents         Document[]
   workflowStages    WorkflowAction[]
@@ -83,7 +83,7 @@ model Application {
 }
 
 model Document {
-  id            String         @id @default(cuid())
+  id            String         @id @default(cuid()) @map("_id")
   applicationId String
   application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   documentType  String
@@ -98,7 +98,7 @@ model Document {
 }
 
 model DocumentReview {
-  id         String         @id @default(cuid())
+  id         String         @id @default(cuid()) @map("_id")
   documentId String
   document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
   reviewerId String
@@ -111,7 +111,7 @@ model DocumentReview {
 }
 
 model WorkflowAction {
-  id            String        @id @default(cuid())
+  id            String        @id @default(cuid()) @map("_id")
   applicationId String
   application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   actorId       String
@@ -125,7 +125,7 @@ model WorkflowAction {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid()) @map("_id")
   userId    String
   title     String
   message   String
@@ -136,12 +136,12 @@ model Notification {
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid()) @map("_id")
   userId    String
   action    String
   entity    String
   entityId  String
-  metadata  String?
+  metadata  Json?
   createdAt DateTime @default(now())
 
   @@map("audit_logs")

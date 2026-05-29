@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { documentService } from './document.service';
-import { DocumentStatus } from '@prisma/client';
+import { DocumentStatus } from '../../constants/enums';
 
 const reviewSchema = z.object({
   status: z.enum(['VERIFIED', 'REJECTED']),

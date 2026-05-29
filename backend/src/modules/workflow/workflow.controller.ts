@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { workflowService } from './workflow.service';
-import { WorkflowStage } from '@prisma/client';
+import { WorkflowStage } from '../../constants/enums';
 
 const actionSchema = z.object({
   action: z.enum(['APPROVE', 'REJECT', 'REQUEST_CHANGES', 'VERIFY', 'DISBURSE', 'WAITLIST']),

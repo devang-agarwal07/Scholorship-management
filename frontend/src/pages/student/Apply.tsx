@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { scholarshipApi } from '../../api/scholarship.api';
-import { useCreateApplication, useUpdateApplication, useUploadDocument, useSubmitApplication } from '../../hooks/useApplications';
+import { useCreateApplication, useUpdateApplication, useUploadDocument, useSubmitApplication, useMyApplications } from '../../hooks/useApplications';
 import { useAuthStore } from '../../store/authStore';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -63,27 +63,46 @@ export default function Apply() {
     enabled: !!scholarshipId,
   });
 
+  const { data: myApps } = useMyApplications();
+  const existingApp = myApps?.find((a: any) => a.scholarshipId === scholarshipId);
+
   const createMutation = useCreateApplication();
   const updateMutation = useUpdateApplication();
   const uploadMutation = useUploadDocument();
   const submitMutation = useSubmitApplication();
 
-  // Pre-fill personal info from profile
+  // Pre-fill personal info from profile or existing application
   useEffect(() => {
-    if (user?.profile) {
-      setFormData((prev) => ({
-        ...prev,
-        firstName: user.profile?.firstName || '',
-        lastName: user.profile?.lastName || '',
-        phone: user.profile?.phone || '',
-        address: user.profile?.address || '',
-        institution: user.profile?.institution || '',
-        department: user.profile?.department || '',
-        yearOfStudy: user.profile?.yearOfStudy || 1,
-        cgpa: user.profile?.cgpa || 0,
-      }));
-    }
-  }, [user]);
+    setFormData((prev) => {
+      const newData = { ...prev };
+      
+      if (user?.profile) {
+        newData.firstName = user.profile.firstName || '';
+        newData.lastName = user.profile.lastName || '';
+        newData.phone = user.profile.phone || '';
+        newData.address = user.profile.address || '';
+        newData.institution = user.profile.institution || '';
+        newData.department = user.profile.department || '';
+        newData.yearOfStudy = user.profile.yearOfStudy || 1;
+        newData.cgpa = user.profile.cgpa || 0;
+      }
+
+      if (existingApp) {
+        setApplicationId(existingApp.id);
+        if (existingApp.personalStatement) newData.personalStatement = existingApp.personalStatement;
+        if (existingApp.familyIncome) newData.familyIncome = existingApp.familyIncome;
+        if (existingApp.academicDetails) {
+          const ad = existingApp.academicDetails as any;
+          if (ad.institution) newData.institution = ad.institution;
+          if (ad.department) newData.department = ad.department;
+          if (ad.yearOfStudy) newData.yearOfStudy = ad.yearOfStudy;
+          if (ad.cgpa) newData.cgpa = ad.cgpa;
+        }
+      }
+
+      return newData;
+    });
+  }, [user, existingApp]);
 
   const currentSchema = steps[currentStep].schema;
 
@@ -118,7 +137,12 @@ export default function Apply() {
           },
         });
         setApplicationId(app.id);
-      } catch {
+      } catch (err: any) {
+        if (err.response?.status === 409) {
+          alert('You already have a draft application for this scholarship. Refresh the page to load it.');
+        } else {
+          alert('Failed to save application: ' + (err.response?.data?.message || err.message));
+        }
         return;
       }
     } else if (applicationId) {
@@ -137,8 +161,9 @@ export default function Apply() {
             },
           },
         });
-      } catch {
-        // continue
+      } catch (err: any) {
+        alert('Failed to save draft: ' + (err.response?.data?.message || err.message));
+        return;
       }
     }
 

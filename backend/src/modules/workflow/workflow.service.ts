@@ -1,6 +1,6 @@
 import prisma from '../../config/database';
 import { AppError } from '../../middleware/errorHandler';
-import { ApplicationStatus, WorkflowStage } from '@prisma/client';
+import { ApplicationStatus, WorkflowStage } from '../../constants/enums';
 import { notificationService } from '../notification/notification.service';
 
 const VALID_TRANSITIONS: Record<string, ApplicationStatus[]> = {

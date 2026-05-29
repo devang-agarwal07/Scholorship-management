@@ -2,7 +2,7 @@ import prisma from '../../config/database';
 import { hashPassword, comparePassword } from '../../utils/hash';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken, TokenPayload } from '../../utils/jwt';
 import { AppError } from '../../middleware/errorHandler';
-import { Role } from '@prisma/client';
+import { Role } from '../../constants/enums';
 import { addEmailJob } from '../../jobs/queue';
 import crypto from 'crypto';
 
@@ -22,20 +22,20 @@ class AuthService {
     const passwordHash = await hashPassword(data.password);
     const role = data.role || Role.STUDENT;
 
-    // Only SUPER_ADMIN can create ADMIN/SUPER_ADMIN accounts (handled at controller level)
     const user = await prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
         role,
-        profile: {
-          create: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-          },
-        },
       },
-      include: { profile: true },
+    });
+
+    const profile = await prisma.profile.create({
+      data: {
+        userId: user.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      },
     });
 
     const tokenPayload: TokenPayload = {
@@ -57,7 +57,7 @@ class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        profile: user.profile,
+        profile: profile,
       },
       accessToken,
       refreshToken,

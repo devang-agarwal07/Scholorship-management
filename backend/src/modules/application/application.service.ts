@@ -1,6 +1,7 @@
 import prisma from '../../config/database';
 import { AppError } from '../../middleware/errorHandler';
-import { ApplicationStatus, Prisma, Role } from '@prisma/client';
+import { ApplicationStatus, Role } from '../../constants/enums';
+import { Prisma } from '@prisma/client';
 import { notificationService } from '../notification/notification.service';
 import { addEmailJob } from '../../jobs/queue';
 

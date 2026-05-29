@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usePendingDocuments, useReviewDocument } from '../../hooks/useApplications';
+import { applicationApi } from '../../api/application.api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Textarea } from '../../components/ui/textarea';
@@ -75,7 +76,22 @@ export default function DocumentReview() {
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={doc.status as string} />
-                    <Button size="sm" variant="outline" onClick={() => window.open('#', '_blank')}>
+                    <Button size="sm" variant="outline" onClick={async () => {
+                      try {
+                        const res = await applicationApi.getDocumentSignedUrl(doc.id as string);
+                        if (res.signedUrl) {
+                          window.open(res.signedUrl, '_blank');
+                        } else if (res.s3Url) {
+                           // Fallback if the backend returns s3Url directly in dev mode
+                           window.open(res.s3Url.startsWith('http') ? res.s3Url : `http://localhost:5000${res.s3Url}`, '_blank');
+                        } else {
+                           alert('Document URL not available');
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert('Failed to get document URL');
+                      }
+                    }}>
                       <ExternalLink className="w-4 h-4" />
                     </Button>
                   </div>
