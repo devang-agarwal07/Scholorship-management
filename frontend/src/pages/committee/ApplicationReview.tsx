@@ -84,7 +84,7 @@ export default function ApplicationReview() {
                   <StatusBadge status={app.status as string} />
                 </div>
 
-                {app.personalStatement && (
+                {Boolean(app.personalStatement) && (
                   <p className="text-sm mt-3 p-3 bg-slate-50 rounded-lg line-clamp-3 italic text-slate-600">
                     "{app.personalStatement as string}"
                   </p>
