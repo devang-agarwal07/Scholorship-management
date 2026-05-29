@@ -69,9 +69,13 @@ app.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📋 API docs: http://localhost:${PORT}/api/health\n`);
 
-  // Start background workers (non-blocking)
-  startEmailWorker();
-  startReportWorker();
+  // Start background workers if Redis is configured
+  if (process.env.REDIS_URL) {
+    startEmailWorker();
+    startReportWorker();
+  } else {
+    console.warn('⚠️ REDIS_URL not configured. Background workers disabled.');
+  }
 });
 
 export default app;
