@@ -41,22 +41,24 @@ class DocumentService {
       throw new AppError('File size exceeds 5MB limit.', 400);
     }
 
-    // Generate S3 key and upload
-    const s3Key = generateS3Key(
+    // Generate Cloudinary/S3 key and upload
+    const originalS3Key = generateS3Key(
       application.scholarshipId,
       applicationId,
       documentType,
       file.originalname
     );
 
+    let finalS3Key = originalS3Key;
+    let s3Url = '';
     try {
-      await uploadToS3(file.buffer, s3Key, file.mimetype);
+      const uploadResult = await uploadToS3(file.buffer, originalS3Key, file.mimetype);
+      finalS3Key = uploadResult.key;
+      s3Url = uploadResult.url;
     } catch (error) {
-      console.error('S3 upload failed:', error);
-      // Continue with local reference even if S3 fails (for development)
+      console.error('Upload failed:', error);
+      throw new AppError('File upload failed', 500);
     }
-
-    const s3Url = `https://${process.env.AWS_S3_BUCKET || 'scholarship-docs'}.s3.${process.env.AWS_REGION || 'ap-south-1'}.amazonaws.com/${s3Key}`;
 
     // Check if document of this type already exists for the application
     const existingDoc = await prisma.document.findFirst({
@@ -70,7 +72,7 @@ class DocumentService {
         where: { id: existingDoc.id },
         data: {
           fileName: file.originalname,
-          s3Key,
+          s3Key: finalS3Key,
           s3Url,
           status: 'PENDING',
         },
@@ -81,7 +83,7 @@ class DocumentService {
           applicationId,
           documentType,
           fileName: file.originalname,
-          s3Key,
+          s3Key: finalS3Key,
           s3Url,
           status: 'PENDING',
         },
